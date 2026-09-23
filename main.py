@@ -1,11 +1,11 @@
 import os
 import uuid
 import glob
+import requests
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import yt_dlp
 
 app = FastAPI(title="YT Downloader API")
 
@@ -24,38 +24,27 @@ class DownloadRequest(BaseModel):
     url: str
     format: str = "mp3"
 
-def download_task(url: str, job_id: str):
-    outtmpl = os.path.join(DOWNLOAD_DIR, f"{job_id}.%(ext)s")
+def download_stream(url: str, job_id: str):
+    # Free converter engine call
+    api_endpoint = f"https://api.vevioz.com/api/button/mp3/{url}"
+    out_file = os.path.join(DOWNLOAD_DIR, f"{job_id}.mp3")
     
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": outtmpl,
-        "quiet": True,
-        "no_warnings": True,
-        "nocheckcertificate": True,
-        # YouTube datacenter IP block bypass
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["android", "ios"]
-            }
-        },
-        "http_headers": {
-            "User-Agent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip"
-        },
-        "postprocessors": [
-            {
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "192",
-            }
-        ],
-    }
-
+    # Fallback to direct download via cobalt/public service if needed
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+        payload = {"url": url, "downloadMode": "audio", "audioFormat": "mp3"}
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        res = requests.post("https://api.cobalt.tools/api/json", json=payload, headers=headers, timeout=20)
+        
+        if res.status_code == 200 and "url" in res.json():
+            stream_url = res.json()["url"]
+            with requests.get(stream_url, stream=True, timeout=60) as r:
+                r.raise_for_status()
+                with open(out_file, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
+            return
     except Exception as e:
-        print(f"Download failed for {job_id}: {e}")
+        print(f"Cobalt engine failed: {e}")
 
 @app.get("/")
 def root():
@@ -68,7 +57,7 @@ async def download(req: DownloadRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="Invalid YouTube URL")
 
     job_id = str(uuid.uuid4())
-    background_tasks.add_task(download_task, clean_url, job_id)
+    background_tasks.add_task(download_stream, clean_url, job_id)
 
     return {
         "job_id": job_id,
@@ -76,11 +65,10 @@ async def download(req: DownloadRequest, background_tasks: BackgroundTasks):
         "file_url": f"/file/{job_id}",
     }
 
-# GET aur HEAD dono allow kiye hain taaki 405 error na aaye
 @app.api_route("/file/{job_id}", methods=["GET", "HEAD"])
 async def get_file(job_id: str):
     matches = glob.glob(os.path.join(DOWNLOAD_DIR, f"{job_id}.*"))
     if not matches:
-        raise HTTPException(status_code=404, detail="Not ready yet")
+        raise HTTPException(status_code=404, detail="Processing... wait 10-15 seconds.")
     path = matches[0]
-    return FileResponse(path, filename="audio.mp3", media_type="audio/mpeg")
+    return FileResponse(path, filename="song.mp3", media_type="audio/mpeg")
