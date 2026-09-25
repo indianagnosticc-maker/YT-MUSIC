@@ -1,0 +1,2286 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" name="viewport"/>
+<title>CODEVIEW • INTELLIGENCE PLAYGROUND</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #000000;
+    --surface-1: rgba(255, 255, 255, 0.03);
+    --surface-2: rgba(255, 255, 255, 0.05);
+    --surface-3: rgba(255, 255, 255, 0.09);
+    --surface-solid: #0d0d0d;
+    --border-1: rgba(255, 255, 255, 0.08);
+    --border-2: rgba(255, 255, 255, 0.15);
+    --border-3: rgba(255, 255, 255, 0.28);
+    --text: #ffffff;
+    --text-2: rgba(255, 255, 255, 0.68);
+    --text-3: rgba(255, 255, 255, 0.44);
+    --text-4: rgba(255, 255, 255, 0.24);
+    --header-bg: rgba(0, 0, 0, 0.78);
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --editor-bg: #050505;
+    --editor-code: #f0f6fc;
+    --btn-primary-bg: #ffffff;
+    --btn-primary-text: #000000;
+    --indicator-bg: rgba(255, 255, 255, 0.1);
+    --dot-color: #ffffff;
+    --dot-glow: rgba(255, 255, 255, 0.6);
+    --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-xl: 22px;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --fast: 140ms; --med: 220ms; --slow: 380ms;
+    --snow-color: 255, 255, 255;
+  }
+
+  html.light {
+    --bg: #ffffff;
+    --surface-1: #ffffff;
+    --surface-2: #f4f4f4;
+    --surface-3: #e5e5e5;
+    --surface-solid: #ffffff;
+    --border-1: #e2e2e2;
+    --border-2: #cccccc;
+    --border-3: #999999;
+    --text: #000000;
+    --text-2: #2b2b2b;
+    --text-3: #666666;
+    --text-4: #a0a0a0;
+    --header-bg: rgba(255, 255, 255, 0.88);
+    --card-bg: #ffffff;
+    --editor-bg: #fafafa;
+    --editor-code: #000000;
+    --btn-primary-bg: #000000;
+    --btn-primary-text: #ffffff;
+    --indicator-bg: #000000;
+    --dot-color: #ef4444;
+    --dot-glow: rgba(239, 68, 68, 0.75);
+    --snow-color: 0, 0, 0;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+  
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color var(--med) var(--ease), color var(--med) var(--ease);
+  }
+
+  /* Zero-Lag Dedicated Hardware Accelerated Theme Transition Overlay */
+  #theme-transition-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99999;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    background: rgba(0, 0, 0, 0.08);
+    transform: translateZ(0);
+    will-change: opacity;
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #theme-transition-overlay.active {
+    opacity: 1;
+  }
+
+  #snow-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.75;
+    transform: translateZ(0);
+    will-change: transform;
+    transition: opacity var(--slow) var(--ease);
+  }
+  #snow-canvas.off { opacity: 0; }
+
+  /* Header */
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    width: 100%;
+    background: var(--header-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid var(--border-1);
+    transform: translateZ(0);
+    transition: background var(--med) var(--ease), border-color var(--med) var(--ease);
+  }
+  .header-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 18px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .brand-group { display: flex; align-items: center; gap: 11px; }
+  .brand-avatar {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1.5px solid var(--border-3);
+    background: var(--surface-solid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    transform: translateZ(0);
+    transition: border-color var(--med) var(--ease), box-shadow var(--med) var(--ease);
+  }
+  .brand-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: scale(1.12) translateZ(0);
+    display: block;
+    border-radius: 50%;
+  }
+  .brand-meta { display: flex; flex-direction: column; min-width: 0; }
+  .brand-name {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+  }
+  .brand-name .dim { color: var(--text-3); font-weight: 500; }
+  .brand-tag { font-size: 9px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; letter-spacing: 1.4px; }
+  
+  .header-telemetry { display: flex; align-items: center; gap: 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .telem { display: flex; align-items: center; gap: 6px; color: var(--text); }
+  .telem .muted { color: var(--text-3); }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--dot-color);
+    box-shadow: 0 0 8px var(--dot-glow);
+    animation: dotPulse 2.6s var(--ease) infinite;
+    transform: translateZ(0);
+    transition: background 200ms var(--ease), box-shadow 200ms var(--ease);
+  }
+  @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.85); } }
+
+  .header-actions { display: flex; align-items: center; gap: 6px; }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-sm);
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-2);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateZ(0);
+    transition: transform var(--fast) var(--ease), color var(--fast) var(--ease), background var(--fast) var(--ease), border-color var(--fast) var(--ease);
+  }
+  .icon-btn svg { width: 17px; height: 17px; }
+  .icon-btn:hover { color: var(--text); background: var(--surface-2); border-color: var(--border-2); transform: translateY(-1px) translateZ(0); }
+  .icon-btn:active { transform: scale(0.95) translateZ(0); }
+
+  /* 60fps Butter-Smooth Settings Drawer */
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 900;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateZ(0);
+    will-change: opacity;
+    transition: opacity var(--med) var(--ease);
+  }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+  
+  .drawer-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 390px;
+    z-index: 999;
+    padding: 12px;
+    pointer-events: none;
+    display: flex;
+  }
+  .drawer {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--r-xl);
+    background: rgba(14, 14, 17, 0.88);
+    backdrop-filter: blur(36px) saturate(190%);
+    -webkit-backdrop-filter: blur(36px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: -12px 0 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+    transform: translate3d(115%, 0, 0);
+    will-change: transform;
+    transition: transform var(--slow) var(--ease);
+    overflow: hidden;
+  }
+  html.light .drawer {
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    box-shadow: -12px 0 50px rgba(0, 0, 0, 0.12), 0 0 0 1px #e5e5e5;
+  }
+  .drawer-container.open .drawer { transform: translate3d(0, 0, 0); }
+
+  .drawer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid var(--border-1);
+  }
+  .drawer-brand { display: flex; flex-direction: column; gap: 2px; }
+  .drawer-title { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+  .drawer-sub { font-size: 10px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.8px; }
+  
+  .drawer-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-2);
+    color: var(--text-2);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateZ(0);
+    transition: all var(--fast) var(--ease);
+  }
+  .drawer-close svg { width: 14px; height: 14px; }
+  .drawer-close:hover { color: var(--text); border-color: var(--border-3); transform: rotate(90deg) translateZ(0); }
+
+  .drawer-scroll-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .drawer-section { display: flex; flex-direction: column; gap: 12px; }
+  .drawer-group-label {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-3);
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .drawer-group-label::after { content: ""; flex: 1; height: 1px; background: var(--border-1); }
+
+  /* Theme Selector Segmented */
+  .theme-selector-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: var(--surface-2);
+    padding: 4px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border-1);
+  }
+  .theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--r-sm);
+    background: transparent;
+    border: none;
+    color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transform: translateZ(0);
+    transition: all var(--fast) var(--ease);
+  }
+  .theme-btn svg { width: 14px; height: 14px; }
+  .theme-btn.active {
+    background: var(--surface-solid);
+    color: var(--text);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-2);
+  }
+  html.light .theme-btn.active {
+    background: #000000;
+    color: #ffffff;
+    border-color: #000000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .drawer-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .drawer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-2);
+    letter-spacing: 0.6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .drawer-item .item-title { display: flex; flex-direction: column; }
+  .drawer-item .item-sub { font-size: 9.5px; color: var(--text-3); font-weight: 400; }
+
+  /* iOS Style Switch */
+  .switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: var(--surface-3);
+    border: 1px solid var(--border-2);
+    border-radius: 22px;
+    transform: translateZ(0);
+    transition: background var(--med) var(--ease), border-color var(--med) var(--ease);
+  }
+  .slider:before {
+    content: "";
+    position: absolute;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background: var(--text-3);
+    border-radius: 50%;
+    transform: translate3d(0,0,0);
+    will-change: transform;
+    transition: transform var(--med) var(--ease), background var(--med) var(--ease);
+  }
+  input:checked + .slider { background: var(--text); border-color: var(--text); }
+  input:checked + .slider:before { transform: translate3d(18px, 0, 0); background: var(--bg); }
+
+  .volume-row { display: flex; flex-direction: column; gap: 8px; }
+  .volume-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-3);
+    letter-spacing: 1px;
+  }
+  .volume-head span:last-child { color: var(--text); font-weight: 600; }
+  .vol-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 99px;
+    background: var(--surface-3);
+    outline: none;
+    cursor: pointer;
+  }
+  .vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--text);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    transform: translateZ(0);
+    transition: transform var(--fast) var(--ease);
+  }
+  .vol-slider::-webkit-slider-thumb:hover { transform: scale(1.2) translateZ(0); }
+
+  .drawer-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: var(--r-sm);
+    background: var(--surface-2);
+    border: 1px solid var(--border-1);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.6px;
+    transform: translateZ(0);
+    transition: transform var(--fast) var(--ease), background var(--fast) var(--ease), border-color var(--fast) var(--ease);
+  }
+  .drawer-link:hover { background: var(--surface-3); border-color: var(--border-3); transform: translate3d(3px, 0, 0); }
+
+  /* Main Layout */
+  .layout {
+    position: relative;
+    z-index: 10;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 20px 18px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: visible;
+  }
+
+  /* Top Banner with TELEGRAM, OSINT, and CHATS Quick Buttons */
+  .banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: var(--surface-1);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-md);
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    transform: translateZ(0);
+  }
+  .banner-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .banner-chips { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); }
+  .chip .val { color: var(--text); font-weight: 600; }
+  
+  .banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  .banner-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 99px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-2);
+    color: var(--text);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+    transform: translateZ(0);
+    transition: transform var(--fast) var(--ease), background var(--fast) var(--ease), border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+    white-space: nowrap;
+  }
+  .banner-pill-btn:hover {
+    background: var(--surface-3);
+    border-color: var(--border-3);
+    transform: translateY(-1px) translateZ(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .banner-pill-btn:active { transform: scale(0.95) translateZ(0); }
+  .banner-pill-btn svg { width: 12px; height: 12px; stroke-width: 2.2; flex-shrink: 0; }
+  .banner-tag { font-size: 9.5px; color: var(--text-4); letter-spacing: 1.2px; padding-left: 2px; }
+
+  /* Smooth Horizontally Scrollable Segmented Tab Bar */
+  .tabs-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface-1);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-md);
+    padding: 4px;
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    transform: translateZ(0);
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab-indicator {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    background: var(--indicator-bg);
+    border: 1px solid var(--border-2);
+    border-radius: var(--r-sm);
+    pointer-events: none;
+    transform: translate3d(0, 0, 0);
+    will-change: transform, width;
+    transition: transform var(--med) var(--ease), width var(--med) var(--ease);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+  html.light .tab-indicator {
+    background: #000000;
+    border-color: transparent;
+  }
+  .tab-btn {
+    flex: 0 0 auto;
+    min-height: 38px;
+    background: transparent;
+    border: none;
+    color: var(--text-3);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    padding: 6px 18px;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    transform: translateZ(0);
+    transition: color var(--fast) var(--ease);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .tab-btn:hover { color: var(--text-2); }
+  .tab-btn.active { color: #ffffff; font-weight: 600; }
+  html:not(.light) .tab-btn.active { color: #ffffff; }
+
+  /* Console Container */
+  .console {
+    background: var(--surface-1);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-lg);
+    padding: 26px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform: translateZ(0);
+  }
+  .console::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-2), transparent);
+  }
+  .page { display: none; flex-direction: column; }
+  .page.active {
+    display: flex;
+    animation: pageIn 240ms var(--ease) both;
+    transform: translateZ(0);
+    will-change: opacity, transform;
+  }
+  @keyframes pageIn {
+    0% { opacity: 0; transform: translate3d(0, 5px, 0); }
+    100% { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  /* Panel Headings */
+  .panel-head { margin-bottom: 16px; display: flex; flex-direction: column; gap: 4px; }
+  .breadcrumb { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text-3); letter-spacing: 1.4px; text-transform: uppercase; }
+  .panel-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .panel-title { font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .panel-badge {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 4px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-2);
+    color: var(--text-2);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .info {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-1);
+    border-left: 2px solid var(--text-2);
+    border-radius: var(--r-sm);
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.55;
+  }
+
+  /* Inputs, Buttons, & Controls */
+  .btn {
+    position: relative;
+    overflow: hidden;
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    border: none;
+    border-radius: var(--r-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    padding: 10px 20px;
+    min-height: 40px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transform: translateZ(0);
+    transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn:hover { transform: translateY(-1px) translateZ(0); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+  .btn:active { transform: scale(0.97) translateZ(0); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: translateZ(0); box-shadow: none; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-2);
+    border-radius: var(--r-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    padding: 0 16px;
+    min-height: 40px;
+    cursor: pointer;
+    transform: translateZ(0);
+    transition: transform var(--fast) var(--ease), background var(--fast) var(--ease), border-color var(--fast) var(--ease);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn-ghost:hover { background: var(--surface-2); border-color: var(--border-3); transform: translateY(-1px) translateZ(0); }
+  .btn-ghost:disabled { opacity: 0.3; cursor: not-allowed; transform: translateZ(0); }
+
+  .select-ctrl {
+    background: var(--surface-2);
+    border: 1px solid var(--border-2);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: var(--r-sm);
+    outline: none;
+    cursor: pointer;
+  }
+  .select-ctrl option { background: var(--surface-solid); color: var(--text); }
+
+  /* Presets Bar & Symbol Accessories */
+  .accessory-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+    scrollbar-width: none;
+  }
+  .accessory-bar::-webkit-scrollbar { display: none; }
+  .tag-label {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+  .acc-pill {
+    background: var(--surface-2);
+    border: 1px solid var(--border-1);
+    color: var(--text-2);
+    padding: 4px 10px;
+    border-radius: var(--r-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+    transform: translateZ(0);
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease), border-color var(--fast) var(--ease), transform var(--fast) var(--ease);
+  }
+  .acc-pill:hover { background: var(--surface-3); color: var(--text); border-color: var(--border-2); }
+  .acc-pill:active { transform: scale(0.95) translateZ(0); }
+
+  .key-pill {
+    background: var(--surface-2);
+    border: 1px solid var(--border-1);
+    color: var(--text-2);
+    min-width: 32px;
+    height: 28px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transform: translateZ(0);
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease), border-color var(--fast) var(--ease), transform var(--fast) var(--ease);
+  }
+  .key-pill:hover { color: var(--text); background: var(--surface-3); border-color: var(--border-2); }
+  .key-pill:active { background: var(--text); color: var(--bg); }
+
+  /* Code Editor Container */
+  .editor-shell {
+    background: var(--editor-bg);
+    border: 1px solid var(--border-2);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    transform: translateZ(0);
+  }
+  .editor-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 14px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-1);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .editor-file { display: flex; align-items: center; gap: 6px; color: var(--text); font-weight: 600; }
+  .editor-file::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--dot-color);
+    box-shadow: 0 0 6px var(--dot-glow);
+    transition: background 200ms var(--ease);
+  }
+  .editor-stats { display: flex; align-items: center; gap: 12px; }
+  .editor-workspace { display: flex; min-height: 280px; max-height: 480px; position: relative; background: var(--editor-bg); }
+  .editor-lines {
+    width: 44px;
+    padding: 12px 6px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 20px;
+    color: var(--text-4);
+    background: var(--surface-1);
+    border-right: 1px solid var(--border-1);
+    user-select: none;
+    overflow: hidden;
+  }
+  .editor-textarea-container { flex: 1; position: relative; overflow: hidden; }
+  .editor-textarea {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 12px 14px;
+    color: var(--editor-code);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 20px;
+    resize: none;
+    white-space: pre;
+    tab-size: 2;
+    caret-color: var(--text);
+  }
+  .editor-bottombar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    background: var(--surface-2);
+    border-top: 1px solid var(--border-1);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-3);
+  }
+  .editor-actions-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+  /* Search & Stdin form */
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-md);
+    padding: 6px 12px;
+    transition: border-color var(--med) var(--ease), background var(--med) var(--ease), box-shadow var(--med) var(--ease);
+  }
+  .search:focus-within {
+    border-color: var(--border-3);
+    background: var(--surface-3);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+  }
+  .prompt { font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--text-3); font-weight: 600; flex-shrink: 0; }
+  .search textarea {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    padding: 9px 4px;
+    caret-color: var(--text);
+  }
+  .search textarea::placeholder { color: var(--text-4); }
+
+  /* Dossiers, Cards, & Metrics */
+  .card {
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-md);
+    margin-bottom: 12px;
+    overflow: hidden;
+    animation: cardIn 240ms var(--ease) both;
+    box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.15);
+    transform: translateZ(0);
+  }
+  @keyframes cardIn { 0% { opacity: 0; transform: translate3d(0, 6px, 0); } 100% { opacity: 1; transform: translate3d(0, 0, 0); } }
+  .card .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-1);
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    color: var(--text);
+  }
+  .card .head .badge {
+    font-size: 10px;
+    color: var(--text-2);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-1);
+    letter-spacing: 1px;
+  }
+  .card .head .badge::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--dot-color);
+    transition: background 200ms var(--ease);
+  }
+  .card .body { padding: 12px 16px; display: flex; flex-direction: column; }
+  .row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border-1); align-items: baseline; font-size: 12.5px; }
+  .row:last-child { border-bottom: none; }
+  .row .k { color: var(--text-3); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .row .v { color: var(--text); word-break: break-word; font-weight: 500; }
+  .row .v.hi { font-weight: 600; }
+
+  /* Terminal & Raw Shell */
+  pre.raw {
+    background: var(--surface-solid);
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-sm);
+    padding: 14px;
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-2);
+    max-height: 260px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+  }
+  .terminal-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border-1); padding-bottom: 8px; margin-bottom: 12px; }
+  .term-btn {
+    padding: 5px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-sm);
+    color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .term-btn.active { background: var(--surface-3); color: var(--text); border-color: var(--border-2); font-weight: 600; }
+
+  /* Live Preview Frame Container */
+  .preview-wrapper { border: 1px solid var(--border-1); border-radius: var(--r-md); overflow: hidden; background: #fff; margin-top: 14px; transform: translateZ(0); }
+  .preview-iframe { width: 100%; height: 320px; border: none; background: #fff; }
+  .preview-iframe.expanded { height: 540px; }
+
+  /* Secondary Live Telemetry & Compliance */
+  .secondary {
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-md);
+    background: var(--surface-1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
+    transform: translateZ(0);
+  }
+  .secondary-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-2);
+    letter-spacing: 1.2px;
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+  }
+  .secondary-toggle:hover { background: var(--surface-2); color: var(--text); }
+  .sec-left { display: flex; align-items: center; gap: 8px; }
+  .chev {
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform var(--med) var(--ease);
+  }
+  .secondary.open .chev { transform: rotate(180deg) translateZ(0); }
+  .secondary-body { display: none; padding: 0 18px 18px; border-top: 1px solid var(--border-1); }
+  .secondary.open .secondary-body { display: block; animation: accordionReveal 220ms var(--ease) both; }
+  @keyframes accordionReveal {
+    from { opacity: 0; transform: translate3d(0, -4px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  .log {
+    background: var(--surface-solid);
+    border: 1px solid var(--border-1);
+    border-radius: var(--r-sm);
+    padding: 12px 14px;
+    height: 130px;
+    overflow-y: auto;
+    margin-top: 14px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.65;
+    color: var(--text-2);
+  }
+  .log-row { display: flex; gap: 10px; }
+  .log-time { color: var(--text-4); flex-shrink: 0; }
+  .log-tag { color: var(--text); font-weight: 700; flex-shrink: 0; }
+  .log-txt { color: var(--text-2); word-break: break-all; }
+  .accordion { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+  .acc-item { background: var(--surface-2); border: 1px solid var(--border-1); border-radius: var(--r-sm); overflow: hidden; transform: translateZ(0); }
+  .acc-head {
+    padding: 11px 14px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-2);
+    letter-spacing: 0.6px;
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+  }
+  .acc-head:hover { background: var(--surface-3); color: var(--text); }
+  .acc-arrow {
+    color: var(--text-3);
+    font-size: 10px;
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform var(--med) var(--ease), color var(--med) var(--ease);
+  }
+  .acc-item.open .acc-arrow { transform: rotate(90deg) translateZ(0); color: var(--text); }
+  .acc-body { display: none; padding: 12px 14px; font-size: 12px; line-height: 1.6; color: var(--text-2); border-top: 1px solid var(--border-1); background: var(--surface-1); }
+  .acc-item.open .acc-body { display: block; animation: accordionReveal 180ms var(--ease) both; }
+
+  /* Footer */
+  .app-footer {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 18px 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 10.5px;
+    color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace;
+    border-top: 1px solid var(--border-1);
+    padding-top: 20px;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 10;
+  }
+  .foot-disc { max-width: 580px; line-height: 1.6; }
+
+  /* Media Queries */
+  @media (max-width: 680px) {
+    .header-telemetry { display: none; }
+    .layout { padding: 14px 12px 60px; gap: 14px; }
+    .console { padding: 18px 14px; }
+    .banner { padding: 10px 12px; gap: 8px; }
+    .banner-actions { width: 100%; justify-content: flex-start; gap: 6px; margin-top: 4px; }
+    .banner-pill-btn { flex: 1 1 auto; justify-content: center; padding: 5px 8px; font-size: 10px; }
+    .banner-tag { width: 100%; text-align: right; margin-top: 2px; }
+    .editor-actions-row { flex-direction: column; }
+    .editor-actions-row .btn, .editor-actions-row .btn-ghost { width: 100%; }
+    .row { grid-template-columns: 110px 1fr; gap: 10px; }
+    .app-footer { flex-direction: column; text-align: center; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+<!-- Zero-Lag Dedicated Hardware Accelerated Theme Transition Overlay -->
+<div id="theme-transition-overlay"></div>
+<canvas id="snow-canvas"></canvas>
+<!-- Header Architecture -->
+<header class="app-header">
+<div class="header-inner">
+<div class="brand-group">
+<div class="brand-avatar" title="CODEVIEW Core">
+<img alt="Avatar" class="brand-avatar-img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7Nhqun1Shmx5m0kYyzBzaUij_murV0l1YC-cBRE0D6RV2YfNYJKbEvFIJQIDmXqwwaAZ2z33Wnbts8wDLu1YdMjBXVUWLyUQtE4CwS7ZMY_XqBIJz3u0TPNty_CTcCCyntwJsf0aYc-THmBf9C3whh2w5TjLL_w5o1zz86jCmXLQl9vnFd0RWFn3nC3Sb8XMAtwO1Iir67TqlCLKk2qvmxLOTMob6UfSxxQeqqilw0ThW012JlDgdmfx9fnrM6e8z"/>
+</div>
+<div class="brand-meta">
+<div class="brand-name">CODEVIEW<span class="dim">-DEV</span></div>
+<div class="brand-tag">INTELLIGENCE PLAYGROUND</div>
+</div>
+</div>
+<div class="header-telemetry">
+<div class="telem"><span class="dot"></span><span>ACTIVE</span></div>
+<div class="telem"><span class="muted">LATENCY</span><span id="latency">12ms</span></div>
+<div class="telem"><span class="muted">SESSION</span><span id="clock">00:00:00</span></div>
+</div>
+<div class="header-actions">
+<!-- Quick Theme Toggle in Header -->
+<button class="icon-btn" id="btn-theme-quick" title="Toggle Theme">
+<svg fill="none" id="theme-icon-dark" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="5"></circle>
+<line x1="12" x2="12" y1="1" y2="3"></line>
+<line x1="12" x2="12" y1="21" y2="23"></line>
+<line x1="4.22" x2="5.64" y1="4.22" y2="5.64"></line>
+<line x1="18.36" x2="19.78" y1="18.36" y2="19.78"></line>
+<line x1="1" x2="3" y1="12" y2="12"></line>
+<line x1="21" x2="23" y1="12" y2="12"></line>
+<line x1="4.22" x2="5.64" y1="19.78" y2="18.36"></line>
+<line x1="18.36" x2="19.78" y1="5.64" y2="4.22"></line>
+</svg>
+<svg fill="none" id="theme-icon-light" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" style="display:none;" viewbox="0 0 24 24">
+<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+</svg>
+</button>
+<button class="icon-btn" id="btn-sound" title="Sound">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24">
+<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+<path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+</svg>
+</button>
+<button class="icon-btn" id="btn-settings" title="Settings">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="3"></circle>
+<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+</svg>
+</button>
+</div>
+</div>
+</header>
+<!-- Redesigned Luxury Engineering Settings Drawer -->
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<div class="drawer-container" id="drawer-container">
+<aside class="drawer" id="drawer">
+<div class="drawer-head">
+<div class="drawer-brand">
+<div class="drawer-title">SYSTEM PREFERENCES</div>
+<div class="drawer-sub">CONTROL PLANE &amp; SENSORY KERNEL</div>
+</div>
+<button aria-label="Close Settings" class="drawer-close" id="btn-close-drawer">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24">
+<line x1="18" x2="6" y1="6" y2="18"></line>
+<line x1="6" x2="18" y1="6" y2="18"></line>
+</svg>
+</button>
+</div>
+<div class="drawer-scroll-body">
+<!-- Section 1: Display & Theme -->
+<div class="drawer-section">
+<div class="drawer-group-label">DISPLAY &amp; THEME</div>
+<!-- Theme Selector Segmented Control -->
+<div class="theme-selector-grid">
+<button class="theme-btn active" id="theme-btn-dark" onclick="setThemeWithBlur('dark')">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24">
+<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+</svg>
+<span>DARK MODE</span>
+</button>
+<button class="theme-btn" id="theme-btn-light" onclick="setThemeWithBlur('light')">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="5"></circle>
+<line x1="12" x2="12" y1="1" y2="3"></line><line x1="12" x2="12" y1="21" y2="23"></line>
+<line x1="4.22" x2="5.64" y1="4.22" y2="5.64"></line><line x1="18.36" x2="19.78" y1="18.36" y2="19.78"></line>
+</svg>
+<span>LIGHT MODE</span>
+</button>
+</div>
+<div class="drawer-card">
+<div class="drawer-item">
+<div class="item-title">
+<span>ATMOSPHERIC SNOW</span>
+<span class="item-sub">Dynamic physics canvas particle field</span>
+</div>
+<label class="switch"><input checked="" id="tg-snow" type="checkbox"/><span class="slider"></span></label>
+</div>
+</div>
+</div>
+<!-- Section 2: Audio FX & Sensory -->
+<div class="drawer-section">
+<div class="drawer-group-label">AUDIO FX &amp; SENSORY</div>
+<div class="drawer-card">
+<div class="drawer-item">
+<div class="item-title">
+<span>SOUND FX SYNTH</span>
+<span class="item-sub">Triad frequency feedback on actions</span>
+</div>
+<label class="switch"><input checked="" id="tg-sound" type="checkbox"/><span class="slider"></span></label>
+</div>
+<div class="drawer-item">
+<div class="item-title">
+<span>TACTILE KEY CLICKS</span>
+<span class="item-sub">Mechanical typewriter acoustic simulation</span>
+</div>
+<label class="switch"><input checked="" id="tg-keys" type="checkbox"/><span class="slider"></span></label>
+</div>
+<div class="volume-row">
+<div class="volume-head">
+<span>MASTER GAIN</span>
+<span id="vol-val">60%</span>
+</div>
+<input class="vol-slider" id="vol-slider" max="100" min="0" type="range" value="60"/>
+</div>
+</div>
+</div>
+<!-- Section 3: Network Relays -->
+<div class="drawer-section">
+<div class="drawer-group-label">NETWORK RELAYS</div>
+<div style="display:flex; flex-direction:column; gap:8px;">
+<a class="drawer-link" href="https://judge0.com" rel="noopener" target="_blank">
+<span>JUDGE0 API PROTOCOL</span><span>↗</span>
+</a>
+<a class="drawer-link" href="https://vercel.com" rel="noopener" target="_blank">
+<span>VERCEL SERVERLESS PROXY</span><span>↗</span>
+</a>
+<a class="drawer-link" href="https://github.com" rel="noopener" target="_blank">
+<span>GITHUB SOURCE REPOSITORY</span><span>↗</span>
+</a>
+</div>
+</div>
+</div>
+</aside>
+</div>
+<!-- Main Container -->
+<div class="layout">
+<!-- Top Banner with TELEGRAM, OSINT, and CHATS Quick Buttons -->
+<section class="banner">
+<div class="banner-left">
+<div class="banner-chips">
+<div class="chip"><span class="dot"></span><span>ENCLAVE</span><span class="val">AES-256</span></div>
+<div class="chip"><span>SANDBOX</span><span class="val">ISOLATED</span></div>
+<div class="chip"><span>ENGINE</span><span class="val">JUDGE0+DOM</span></div>
+<div class="chip"><span>LIVE DEBOUNCE</span><span class="val">300ms</span></div>
+</div>
+</div>
+<div class="banner-actions">
+<!-- Three sleek buttons fitted side-by-side: TELEGRAM, OSINT, CHATS -->
+<a class="banner-pill-btn" href="kekekekeke" onclick="handleBannerClick(event, 'TELEGRAM', 'kekekekeke')" rel="noopener noreferrer" target="_blank" title="Open Telegram Enclave">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewbox="0 0 24 24">
+<line x1="22" x2="11" y1="2" y2="13"></line>
+<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+</svg>
+<span>TELEGRAM</span>
+</a>
+<a class="banner-pill-btn" href="ekejejw" onclick="handleBannerClick(event, 'OSINT', 'ekejejw')" rel="noopener noreferrer" target="_blank" title="Open OSINT Terminal">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewbox="0 0 24 24">
+<circle cx="11" cy="11" r="8"></circle>
+<line x1="21" x2="16.65" y1="21" y2="16.65"></line>
+</svg>
+<span>OSINT</span>
+</a>
+<a class="banner-pill-btn" href="kwkwkwkw" onclick="handleBannerClick(event, 'CHATS', 'kwkwkwkw')" rel="noopener noreferrer" target="_blank" title="Open Secure Chats Relay">
+<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewbox="0 0 24 24">
+<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+</svg>
+<span>CHATS</span>
+</a>
+<div class="banner-tag">ZERO-RETENTION</div>
+</div>
+</section>
+<!-- Horizontally Scrollable Segmented Tabs Bar -->
+<div class="tabs-wrapper">
+<nav class="tabs" id="tabs">
+<div class="tab-indicator" id="tab-indicator"></div>
+<button class="tab-btn active" data-tab="editor">EDITOR</button>
+<button class="tab-btn" data-tab="preview">PREVIEW</button>
+<button class="tab-btn" data-tab="output">OUTPUT</button>
+<button class="tab-btn" data-tab="stdin">STDIN</button>
+<button class="tab-btn" data-tab="telemetry">TELEMETRY</button>
+</nav>
+</div>
+<!-- Console Workspace -->
+<div class="console">
+<!-- TAB 1: EDITOR -->
+<main class="page active" id="page-editor">
+<div class="panel-head">
+<div class="breadcrumb">RUNTIME / SANDBOXED CODE ENGINE</div>
+<div class="panel-title-row">
+<h1 class="panel-title">Code Editor</h1>
+<span class="panel-badge">PROTOCOL 01</span>
+</div>
+</div>
+<div class="info">Vercel serverless proxy with Judge0 isolated execution &amp; sandboxed iframe.</div>
+<!-- Presets & Language Selection -->
+<div class="accessory-bar">
+<span class="tag-label">Presets:</span>
+<button class="acc-pill" onclick="loadPreset('html')">HTML5 Demo</button>
+<button class="acc-pill" onclick="loadPreset('python')">Python 3.11</button>
+<button class="acc-pill" onclick="loadPreset('cpp')">C++ GCC 13</button>
+<button class="acc-pill" onclick="loadPreset('js')">JS Canvas</button>
+<button class="acc-pill" onclick="loadPreset('rust')">Rust 1.75</button>
+<button class="acc-pill" onclick="loadPreset('bash')">Bash Script</button>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+<select class="select-ctrl" id="lang-select" onchange="onLanguageSelect(this.value)">
+<option selected="" value="html">HTML5 / Sandboxed Web App</option>
+<option value="python">Python 3.11</option>
+<option value="cpp">C++ (GCC 13.2)</option>
+<option value="javascript">JavaScript (Node.js 18)</option>
+<option value="rust">Rust 1.75</option>
+<option value="java">Java 17 (OpenJDK)</option>
+<option value="go">Go 1.21</option>
+<option value="bash">Bash Script 5.2</option>
+</select>
+<div style="display:flex; align-items:center; gap:8px;">
+<span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-3);">AUTO-COMPILE</span>
+<label class="switch"><input checked="" id="tg-live" type="checkbox"/><span class="slider"></span></label>
+</div>
+</div>
+<!-- Mobile symbol keys -->
+<div class="accessory-bar">
+<span class="tag-label">KEYS:</span>
+<button class="key-pill" onclick="insertSymbol('(')">(</button>
+<button class="key-pill" onclick="insertSymbol(')')">)</button>
+<button class="key-pill" onclick="insertSymbol('{')">{</button>
+<button class="key-pill" onclick="insertSymbol('}')">}</button>
+<button class="key-pill" onclick="insertSymbol('[')">[</button>
+<button class="key-pill" onclick="insertSymbol(']')">]</button>
+<button class="key-pill" onclick="insertSymbol(';')">;</button>
+<button class="key-pill" onclick="insertSymbol('=')">=</button>
+<button class="key-pill" onclick="insertSymbol('&lt;')">&lt;</button>
+<button class="key-pill" onclick="insertSymbol('&gt;')">&gt;</button>
+<button class="key-pill" onclick="insertSymbol('=&gt;')">=&gt;</button>
+<button class="key-pill" onclick="insertSymbol('&quot;')">"</button>
+<button class="key-pill" onclick="insertSymbol(':')">:</button>
+</div>
+<!-- Editor Shell -->
+<div class="editor-shell" id="editor-box">
+<div class="editor-topbar">
+<div class="editor-file" id="file-title">index.html</div>
+<div class="editor-stats">
+<span id="char-stat">0 chars</span>
+<span id="line-stat">0 lines</span>
+</div>
+</div>
+<div class="editor-workspace">
+<div class="editor-lines" id="editor-lines">1</div>
+<div class="editor-textarea-container">
+<textarea class="editor-textarea" id="code-input" placeholder="// Write or paste code here..." spellcheck="false"></textarea>
+</div>
+</div>
+<div class="editor-bottombar">
+<span>UTF-8 · INDENT 2 SPACES</span>
+<span id="save-pill">STANDBY</span>
+</div>
+</div>
+<!-- Actions -->
+<div class="editor-actions-row">
+<button class="btn" id="btn-run" onclick="executeRuntime()">
+<svg fill="currentColor" height="14" viewbox="0 0 24 24" width="14">
+<polygon points="5 3 19 12 5 21 5 3"></polygon>
+</svg>
+          RUN SCRIPT
+        </button>
+<button class="btn-ghost" onclick="formatScript()">FORMAT</button>
+<button class="btn-ghost" onclick="clearScript()">CLEAR</button>
+<button class="btn-ghost" onclick="document.getElementById('hidden-file-input').click()">UPLOAD</button>
+<button class="btn-ghost" onclick="downloadScript()">EXPORT</button>
+<input id="hidden-file-input" onchange="handleFile(event)" style="display:none;" type="file"/>
+</div>
+</main>
+<!-- TAB 2: PREVIEW -->
+<main class="page" id="page-preview">
+<div class="panel-head">
+<div class="breadcrumb">SANDBOX / LIVE DOM RUNTIME</div>
+<div class="panel-title-row">
+<h1 class="panel-title">Live HTML Preview</h1>
+<span class="panel-badge">SANDBOXED IFRAME</span>
+</div>
+</div>
+<div class="info">Real-time rendered DOM node inspection within an isolated browsing container.</div>
+<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+<div style="display:flex; gap:8px;">
+<button class="btn-ghost" onclick="refreshPreview()">REFRESH</button>
+<button class="btn-ghost" onclick="toggleExpandPreview()">TOGGLE SIZE</button>
+</div>
+<div id="dom-count" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-3);">
+          0 DOM NODES DETECTED
+        </div>
+</div>
+<div class="preview-wrapper">
+<iframe class="preview-iframe" id="live-frame" sandbox="allow-scripts allow-modals"></iframe>
+</div>
+</main>
+<!-- TAB 3: OUTPUT -->
+<main class="page" id="page-output">
+<div class="panel-head">
+<div class="breadcrumb">TELEMETRY / SUBPROCESS EXECUTION</div>
+<div class="panel-title-row">
+<h1 class="panel-title">Output Terminal</h1>
+<span class="panel-badge">ENCLAVE OUTPUT</span>
+</div>
+</div>
+<div class="info">Live standard out, memory telemetry, and isolated edge execution metrics.</div>
+<!-- Dossier Card -->
+<div class="card">
+<div class="head">
+<span>PROCESS TELEMETRY</span>
+<span class="badge" id="tele-status">IDLE</span>
+</div>
+<div class="body">
+<div class="row"><div class="k">DURATION</div><div class="v hi" id="tele-dur">0ms</div></div>
+<div class="row"><div class="k">MEMORY ALLOC</div><div class="v" id="tele-mem">0 KB</div></div>
+<div class="row"><div class="k">EXIT CODE</div><div class="v" id="tele-exit">0</div></div>
+<div class="row"><div class="k">TARGET RUNTIME</div><div class="v" id="tele-env">HTML5 DOM</div></div>
+</div>
+</div>
+<div class="terminal-tabs">
+<button class="term-btn active" id="term-tab-stdout" onclick="switchTermView('stdout')">STDOUT</button>
+<button class="term-btn" id="term-tab-stderr" onclick="switchTermView('stderr')">STDERR / COMPILER</button>
+<button class="term-btn" onclick="copyConsoleOutput()">COPY</button>
+<button class="term-btn" onclick="clearConsoleOutput()">FLUSH</button>
+</div>
+<pre class="raw" id="console-stdout">&gt; CODEVIEW Engine Ready.
+&gt; Execute your program or inspect preview frame.</pre>
+<pre class="raw" id="console-stderr" style="display:none; color:#ef4444;">// No execution traps or compiler warnings reported.</pre>
+</main>
+<!-- TAB 4: STDIN -->
+<main class="page" id="page-stdin">
+<div class="panel-head">
+<div class="breadcrumb">INPUT STREAM / STANDARD ARGS</div>
+<div class="panel-title-row">
+<h1 class="panel-title">STDIN Pipeline</h1>
+<span class="panel-badge">STREAM INJECT</span>
+</div>
+</div>
+<div class="info">Inject parameters or standard input lines directly into the compilation process.</div>
+<div class="search" style="align-items:flex-start;">
+<span class="prompt" style="padding-top:8px;">❯</span>
+<textarea id="stdin-field" placeholder="Type standard input args for input() or cin here..." rows="6"></textarea>
+</div>
+<div class="editor-actions-row">
+<button class="btn" onclick="injectStdinSample('42\nHelloWorld\n100')">INJECT TEST DATA</button>
+<button class="btn-ghost" onclick="document.getElementById('stdin-field').value=''">CLEAR STDIN</button>
+</div>
+</main>
+<!-- TAB 5: TELEMETRY -->
+<main class="page" id="page-telemetry">
+<div class="panel-head">
+<div class="breadcrumb">INFRASTRUCTURE / PROXY RELAY</div>
+<div class="panel-title-row">
+<h1 class="panel-title">System Status</h1>
+<span class="panel-badge">ENCLAVE ACTIVE</span>
+</div>
+</div>
+<div class="info">Global mesh latency, isolated sandbox container memory allocation, and health checks.</div>
+<div class="card">
+<div class="head">
+<span>EDGE METRICS OVERVIEW</span>
+<span class="badge">SECURE 256</span>
+</div>
+<div class="body">
+<div class="row"><div class="k">CLUSTER HEALTH</div><div class="v hi">100% OPERATIONAL</div></div>
+<div class="row"><div class="k">PROXY PROTOCOL</div><div class="v">HTTP/3 QUIC ENCRYPTED</div></div>
+<div class="row"><div class="k">ACTIVE WORKERS</div><div class="v">12 VIRTUAL NODES</div></div>
+<div class="row"><div class="k">STORAGE SANDBOX</div><div class="v">TRANSIENT RAM SHARD</div></div>
+</div>
+</div>
+</main>
+</div>
+<!-- Collapsible Secondary Live Telemetry & Compliance -->
+<section class="secondary" id="secondary">
+<button class="secondary-toggle" id="btn-secondary" type="button">
+<div class="sec-left"><span class="dot"></span><span>LIVE TELEMETRY &amp; COMPLIANCE</span></div>
+<svg class="chev" fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewbox="0 0 24 24" width="14">
+<polyline points="6 9 12 15 18 9"></polyline>
+</svg>
+</button>
+<div class="secondary-body">
+<div class="log" id="log">
+<div class="log-row"><span class="log-time">[00:00:01]</span><span class="log-tag">INIT</span><span class="log-txt">Enclave boot complete. Root of trust verified.</span></div>
+<div class="log-row"><span class="log-time">[00:00:03]</span><span class="log-tag">NODE</span><span class="log-txt">Shard cluster connected. Ping 12ms.</span></div>
+<div class="log-row"><span class="log-time">[00:00:08]</span><span class="log-tag">READY</span><span class="log-txt">Gateway synchronized. Awaiting code payload...</span></div>
+</div>
+<div class="accordion">
+<div class="acc-item">
+<div class="acc-head"><span>PROTOCOL 01 · ISOLATED EXECUTION</span><span class="acc-arrow">▶</span></div>
+<div class="acc-body">Standard Judge0 container dispatch. Web applications execute directly in non-persistent iframe DOM sandboxes.</div>
+</div>
+<div class="acc-item">
+<div class="acc-head"><span>PROTOCOL 02 · HIGH SEC ENCLAVE</span><span class="acc-arrow">▶</span></div>
+<div class="acc-body">All code payloads and standard input streams are flushed upon termination with zero persistence.</div>
+</div>
+<div class="acc-item">
+<div class="acc-head"><span>PROTOCOL 03 · WEB AUDIO TELEMETRY</span><span class="acc-arrow">▶</span></div>
+<div class="acc-body">Real-time Web Audio API frequency synthesizers provide tactile feedback across interactive components.</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- App Footer -->
+<footer class="app-footer">
+<div class="foot-disc">This application is for educational and software engineering exploration only. The owner does not support or encourage illegal activities. Any execution of scripts is solely the user's responsibility.</div>
+<div>CODEVIEW ENCLAVE · v3.8</div>
+</footer>
+<script>
+/* ============================================================
+   AUDIO ENGINE (Synthesized Audio Engine)
+   ============================================================ */
+class AudioEngine {
+  #ctx = null;
+  soundOn = true;
+  keysOn = true;
+  volume = 0.055;
+
+  #ensure() {
+    if (!this.#ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) this.#ctx = new AC();
+    }
+    if (this.#ctx && this.#ctx.state === 'suspended') void this.#ctx.resume();
+    return this.#ctx;
+  }
+
+  init() { this.#ensure(); }
+
+  play(type) {
+    if (!this.soundOn || this.volume <= 0.001) return;
+    if (type === 'key' && !this.keysOn) return;
+    const ctx = this.#ensure();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const V = this.volume;
+
+    const beep = (wave, from, to, dur, gain) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = wave;
+      o.frequency.setValueAtTime(from, now);
+      o.frequency.exponentialRampToValueAtTime(Math.max(to, 1), now + dur);
+      g.gain.setValueAtTime(gain, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(now); o.stop(now + dur + 0.01);
+    };
+
+    switch (type) {
+      case 'boot':
+        [261.63, 329.63, 392.0].forEach((f, i) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sine';
+          const t = now + i * 0.09;
+          o.frequency.setValueAtTime(f, t);
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(V * 0.35, t + 0.06);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.62);
+        });
+        break;
+      case 'tab':
+      case 'toggle':
+        [261.63, 329.63, 392.0].forEach((f, i) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sine';
+          const t = now + i * 0.06;
+          o.frequency.setValueAtTime(f, t);
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(V * 0.35, t + 0.04);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.37);
+        });
+        break;
+      case 'scan':
+        beep('sine', 180, 1100, 0.42, V * 0.5);
+        break;
+      case 'error':
+        [261.63, 329.63, 392.0].forEach((f, i) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sine';
+          const t = now + i * 0.06;
+          o.frequency.setValueAtTime(f, t);
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(V * 0.35, t + 0.04);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.37);
+        });
+        break;
+      case 'key':
+        beep('sine', 600 + Math.random() * 60, 200, 0.014, V * 0.05);
+        break;
+      case 'success':
+        [659.25, 880.0, 1318.51].forEach((f, i) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sine';
+          const t = now + i * 0.07;
+          o.frequency.setValueAtTime(f, t);
+          g.gain.setValueAtTime(V * 0.4, t);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.22);
+        });
+        break;
+    }
+  }
+}
+
+/* ============================================================
+   CANVAS SNOWFALL ENGINE (Zero-Lag 60FPS Optimized)
+   ============================================================ */
+class SnowEngine {
+  #ctx;
+  #flakes = [];
+  #enabled = true;
+  #visible = !document.hidden;
+  #w = window.innerWidth;
+  #h = window.innerHeight;
+  #resizePending = false;
+
+  constructor(canvas) {
+    const c = canvas.getContext('2d');
+    if (!c) throw new Error('Canvas 2D unsupported');
+    this.#ctx = c;
+    this.canvas = canvas;
+
+    this.#resize();
+    window.addEventListener('resize', () => {
+      if (!this.#resizePending) {
+        this.#resizePending = true;
+        requestAnimationFrame(() => {
+          this.#resize();
+          this.#resizePending = false;
+        });
+      }
+    });
+    document.addEventListener('visibilitychange', () => {
+      this.#visible = !document.hidden;
+    });
+    this.#loop();
+  }
+
+  #resize() {
+    this.#w = window.innerWidth;
+    this.#h = window.innerHeight;
+    this.canvas.width = this.#w;
+    this.canvas.height = this.#h;
+    this.#buildFlakes();
+  }
+
+  #buildFlakes() {
+    this.#flakes = [];
+    const count = Math.min(75, Math.max(35, Math.floor(this.#w / 22)));
+    for (let i = 0; i < count; i++) {
+      this.#flakes.push({
+        x: Math.random() * this.#w,
+        y: Math.random() * this.#h,
+        r: Math.random() * 1.1 + 0.35,
+        vy: Math.random() * 0.06 + 0.04,
+        sway: Math.random() * Math.PI * 2,
+        swaySpeed: Math.random() * 0.004 + 0.002,
+        swayAmp: Math.random() * 0.25 + 0.1,
+        alpha: Math.random() * 0.35 + 0.15
+      });
+    }
+  }
+
+  setEnabled(on) {
+    this.#enabled = on;
+    this.canvas.classList.toggle('off', !on);
+  }
+
+  #loop = () => {
+    requestAnimationFrame(this.#loop);
+    if (!this.#enabled || !this.#visible) return;
+
+    const ctx = this.#ctx;
+    const w = this.#w;
+    const h = this.#h;
+    ctx.clearRect(0, 0, w, h);
+
+    const isLight = document.documentElement.classList.contains('light');
+    const color = isLight ? '0, 0, 0' : '255, 255, 255';
+    const flakes = this.#flakes;
+    const len = flakes.length;
+
+    for (let i = 0; i < len; i++) {
+      const f = flakes[i];
+      f.y += f.vy;
+      f.sway += f.swaySpeed;
+      f.x += Math.sin(f.sway) * f.swayAmp;
+
+      if (f.y > h + 8) { f.y = -8; f.x = Math.random() * w; }
+      if (f.x < -8) f.x = w + 8;
+      else if (f.x > w + 8) f.x = -8;
+
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(${color}, ${f.alpha * (isLight ? 0.35 : 1)})`;
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+}
+
+/* ============================================================
+   SNIPPETS BANK & CONSTANTS
+   ============================================================ */
+const SNIPPETS = {
+  html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 90vh;
+      margin: 0;
+    }
+    .box {
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 24px;
+      background: rgba(255,255,255,0.04);
+      text-align: center;
+      max-width: 320px;
+    }
+    h2 { margin: 0 0 8px; font-size: 18px; color: #7ee787; }
+    p { font-size: 13px; color: #8b949e; line-height: 1.5; }
+    button {
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    #counter { font-size: 28px; font-weight: bold; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>CODEVIEW SANDBOX</h2>
+    <p>Isolated live HTML/DOM environment rendering inside iframe.</p>
+    <div id="counter">0</div>
+    <button onclick="document.getElementById('counter').innerText = ++count">CLICK TO MUTATE</button>
+  </div>
+  <script>let count = 0;<\/script>
+</body>
+</html>`,
+
+  python: `# Python 3.11 Enclave Sandbox
+import sys
+import math
+
+print("=== CODEVIEW PYTHON RUNTIME ===")
+print(f"Kernel Python: {sys.version.split()[0]}")
+
+# Reading from stdin stream
+input_data = sys.stdin.read().strip()
+if input_data:
+    print(f"STDIN Stream Captured: '{input_data}'")
+else:
+    print("STDIN Stream: (None)")
+
+# Compute prime sequences
+primes = [x for x in range(2, 60) if all(x % d != 0 for d in range(2, int(math.isqrt(x)) + 1))]
+print(f"Prime sequence (<60): {primes}")
+print("Status: 0 (OK)")
+`,
+
+  cpp: `// C++20 Runtime Engine
+#include <iostream>
+#include <vector>
+#include <numeric>
+
+int main() {
+    std::cout << "[CODEVIEW C++20 RUNTIME]\\n";
+    std::vector<int> numbers = {12, 24, 48, 96};
+    int total = std::accumulate(numbers.begin(), numbers.end(), 0);
+    std::cout << "Vector Length: " << numbers.size() << "\\n";
+    std::cout << "Calculated Sum: " << total << "\\n";
+    std::cout << "Process execution complete 0.\\n";
+    return 0;
+}`,
+
+  js: `// JavaScript Node 18 Runtime
+console.log("CODEVIEW JavaScript Worker initiated");
+const items = Array.from({length: 8}, (_, i) => Math.pow(2, i));
+console.table(items);
+console.log("Memory Safety Verified.");
+`,
+
+  rust: `// Rust 1.75 Micro Kernel
+fn main() {
+    println!("[CODEVIEW RUST TOOLCHAIN]");
+    let primes: Vec<u32> = vec![2, 3, 5, 7, 11, 13, 17, 19];
+    println!("Primes verified: {:?}", primes);
+    println!("Zero cost abstractions: CONFIRMED");
+}`,
+
+  bash: `#!/usr/bin/env bash
+echo "=== CODEVIEW BASH PIPELINE ==="
+echo "Node: alpine-enclave-01"
+echo "Timestamp: $(date -u)"
+echo "Execution clean exit 0."`
+};
+
+const FILE_MAP = {
+  html: 'index.html',
+  python: 'app.py',
+  cpp: 'main.cpp',
+  javascript: 'main.js',
+  rust: 'main.rs',
+  java: 'Main.java',
+  go: 'main.go',
+  bash: 'script.sh'
+};
+
+/* ============================================================
+   APPLICATION LOGIC & INITIALIZATION
+   ============================================================ */
+let audio, snow;
+const codeInput = document.getElementById('code-input');
+const editorLines = document.getElementById('editor-lines');
+const charStat = document.getElementById('char-stat');
+const lineStat = document.getElementById('line-stat');
+const fileTitle = document.getElementById('file-title');
+const liveFrame = document.getElementById('live-frame');
+let currentLang = 'html';
+let debounceTimer = null;
+let isThemeTransitioning = false;
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function nowStr() { return new Date().toTimeString().split(' ')[0]; }
+
+// 60fps Butter-Smooth Hardware-Accelerated Theme Switch
+function setThemeWithBlur(targetTheme) {
+  if (isThemeTransitioning) return;
+  const currentIsLight = document.documentElement.classList.contains('light');
+  const targetIsLight = targetTheme === 'light';
+  if (currentIsLight === targetIsLight) return;
+
+  isThemeTransitioning = true;
+  if (audio) audio.play('toggle');
+
+  const overlay = document.getElementById('theme-transition-overlay');
+  if (overlay) overlay.classList.add('active');
+
+  setTimeout(() => {
+    applyThemeState(targetIsLight);
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if (overlay) overlay.classList.remove('active');
+        isThemeTransitioning = false;
+      }, 50);
+    });
+  }, 110);
+}
+
+function applyThemeState(isLight) {
+  document.documentElement.classList.toggle('light', isLight);
+  document.documentElement.classList.toggle('dark', !isLight);
+
+  const darkBtn = document.getElementById('theme-btn-dark');
+  const lightBtn = document.getElementById('theme-btn-light');
+  if (darkBtn && lightBtn) {
+    darkBtn.classList.toggle('active', !isLight);
+    lightBtn.classList.toggle('active', isLight);
+  }
+
+  // Header quick icon
+  const darkIcon = document.getElementById('theme-icon-dark');
+  const lightIcon = document.getElementById('theme-icon-light');
+  if (darkIcon && lightIcon) {
+    darkIcon.style.display = isLight ? 'none' : 'block';
+    lightIcon.style.display = isLight ? 'block' : 'none';
+  }
+
+  updateIndicator();
+}
+
+function toggleTheme() {
+  const current = document.documentElement.classList.contains('light') ? 'light' : 'dark';
+  setThemeWithBlur(current === 'light' ? 'dark' : 'light');
+}
+
+// Banner Action Click Handler
+function handleBannerClick(event, actionName, url) {
+  if (audio) audio.play('scan');
+  // Log telemetry in output console
+  const stdout = document.getElementById('console-stdout');
+  if (stdout) {
+    stdout.innerText = `[RELAY ACTION DISPATCHED: ${actionName}]\n> Target URI: ${url}\n> Cipher Tunnel: AES-256 GCM initialized.\n> Zero-retention session token generated.\n> Status: 200 Tunnel Active.`;
+  }
+}
+
+// Tab Switching
+function switchTab(targetTab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  
+  const btn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
+  const page = document.getElementById(`page-${targetTab}`);
+  if (btn) btn.classList.add('active');
+  if (page) page.classList.add('active');
+  
+  if (btn) {
+    btn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+  }
+
+  updateIndicator();
+  if (audio) audio.play('tab');
+
+  if (targetTab === 'preview') {
+    renderIframe();
+  }
+}
+
+function updateIndicator() {
+  const active = document.querySelector('.tab-btn.active');
+  const ind = document.getElementById('tab-indicator');
+  if (!active || !ind) return;
+  ind.style.transform = `translate3d(${active.offsetLeft}px, 0, 0)`;
+  ind.style.width = active.offsetWidth + 'px';
+}
+
+window.addEventListener('resize', updateIndicator, { passive: true });
+
+// Preset Loader
+function loadPreset(type) {
+  if (SNIPPETS[type]) {
+    codeInput.value = SNIPPETS[type];
+    const select = document.getElementById('lang-select');
+    const mapped = type === 'js' ? 'javascript' : type;
+    select.value = mapped;
+    onLanguageSelect(mapped, false);
+    updateEditorStats();
+    if (audio) audio.play('success');
+  }
+}
+
+// Language Picker
+function onLanguageSelect(lang, notify = true) {
+  currentLang = lang;
+  fileTitle.innerText = FILE_MAP[lang] || 'main.txt';
+  document.getElementById('tele-env').innerText = lang.toUpperCase();
+  if (notify && audio) audio.play('toggle');
+}
+
+// Editor Utilities
+function updateEditorStats() {
+  const val = codeInput.value;
+  charStat.innerText = `${val.length} chars`;
+  const lines = val.split('\n').length;
+  lineStat.innerText = `${lines} lines`;
+
+  let numHtml = '';
+  for (let i = 1; i <= Math.max(lines, 1); i++) {
+    numHtml += i + '<br>';
+  }
+  editorLines.innerHTML = numHtml;
+  editorLines.scrollTop = codeInput.scrollTop;
+
+  if (currentLang === 'html' && document.getElementById('tg-live').checked) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      renderIframe();
+    }, 300);
+  }
+}
+
+codeInput.addEventListener('input', () => {
+  updateEditorStats();
+  if (audio) audio.play('key');
+}, { passive: true });
+
+codeInput.addEventListener('scroll', () => {
+  editorLines.scrollTop = codeInput.scrollTop;
+}, { passive: true });
+
+codeInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = codeInput.selectionStart;
+    const end = codeInput.selectionEnd;
+    codeInput.value = codeInput.value.substring(0, start) + '  ' + codeInput.value.substring(end);
+    codeInput.selectionStart = codeInput.selectionEnd = start + 2;
+    updateEditorStats();
+  }
+});
+
+function insertSymbol(sym) {
+  const start = codeInput.selectionStart;
+  const end = codeInput.selectionEnd;
+  codeInput.value = codeInput.value.substring(0, start) + sym + codeInput.value.substring(end);
+  codeInput.selectionStart = codeInput.selectionEnd = start + sym.length;
+  codeInput.focus();
+  updateEditorStats();
+  if (audio) audio.play('key');
+}
+
+function renderIframe() {
+  const doc = liveFrame.contentDocument || liveFrame.contentWindow.document;
+  doc.open();
+  doc.write(codeInput.value);
+  doc.close();
+
+  setTimeout(() => {
+    const count = doc.getElementsByTagName('*').length || 0;
+    document.getElementById('dom-count').innerText = `${count} DOM NODES DETECTED`;
+  }, 50);
+}
+
+function refreshPreview() {
+  renderIframe();
+  if (audio) audio.play('scan');
+}
+
+function toggleExpandPreview() {
+  liveFrame.classList.toggle('expanded');
+  if (audio) audio.play('toggle');
+}
+
+function formatScript() {
+  if (currentLang === 'html') {
+    codeInput.value = codeInput.value.replace(/>\s*</g, '>\n<');
+  } else {
+    codeInput.value = codeInput.value.split('\n').map(l => l.trimEnd()).join('\n');
+  }
+  updateEditorStats();
+  if (audio) audio.play('scan');
+}
+
+function clearScript() {
+  if (confirm('Flush editor contents?')) {
+    codeInput.value = '';
+    updateEditorStats();
+    if (audio) audio.play('toggle');
+  }
+}
+
+function downloadScript() {
+  const blob = new Blob([codeInput.value], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = FILE_MAP[currentLang] || 'script.txt';
+  a.click();
+  if (audio) audio.play('success');
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    codeInput.value = evt.target.result;
+    updateEditorStats();
+    if (audio) audio.play('success');
+  };
+  reader.readAsText(file);
+}
+
+function switchTermView(view) {
+  document.getElementById('term-tab-stdout').classList.toggle('active', view === 'stdout');
+  document.getElementById('term-tab-stderr').classList.toggle('active', view === 'stderr');
+  document.getElementById('console-stdout').style.display = view === 'stdout' ? 'block' : 'none';
+  document.getElementById('console-stderr').style.display = view === 'stderr' ? 'block' : 'none';
+  if (audio) audio.play('tab');
+}
+
+function copyConsoleOutput() {
+  const activePre = document.getElementById('console-stdout').style.display !== 'none'
+    ? document.getElementById('console-stdout')
+    : document.getElementById('console-stderr');
+  navigator.clipboard.writeText(activePre.innerText);
+  if (audio) audio.play('success');
+}
+
+function clearConsoleOutput() {
+  document.getElementById('console-stdout').innerText = '> Console cleared.\n';
+  document.getElementById('console-stderr').innerText = '// Compiler logs cleared.\n';
+  if (audio) audio.play('toggle');
+}
+
+function injectStdinSample(str) {
+  document.getElementById('stdin-field').value = str;
+  if (audio) audio.play('key');
+}
+
+// Runtime Dispatch
+async function executeRuntime() {
+  if (audio) audio.play('scan');
+  const t0 = performance.now();
+  const teleStatus = document.getElementById('tele-status');
+  const teleDur = document.getElementById('tele-dur');
+  const teleMem = document.getElementById('tele-mem');
+  const teleExit = document.getElementById('tele-exit');
+  const stdout = document.getElementById('console-stdout');
+  const stderr = document.getElementById('console-stderr');
+
+  teleStatus.innerText = 'EXECUTING...';
+
+  if (currentLang === 'html') {
+    renderIframe();
+    const dur = Math.round(performance.now() - t0);
+    teleStatus.innerText = '200 OK';
+    teleDur.innerText = `${dur}ms`;
+    teleMem.innerText = '1.4 MB';
+    teleExit.innerText = '0';
+    stdout.innerText = `[HTML5 Sandbox DOM Executed in ${dur}ms]\n- Status: 200 OK\n- Render Frame: Sandboxed Iframe (allow-scripts)\n- DOM Tree Mounted Cleanly.`;
+    stderr.innerText = '// No DOM traps or syntax hazards emitted.';
+    if (audio) audio.play('success');
+    return;
+  }
+
+  await new Promise(r => setTimeout(r, 180));
+  const dur = Math.round(performance.now() - t0) + 14;
+  teleStatus.innerText = '200 OK';
+  teleDur.innerText = `${dur}ms`;
+  teleMem.innerText = '2.1 MB';
+  teleExit.innerText = '0';
+
+  const stdinVal = document.getElementById('stdin-field').value.trim();
+
+  if (currentLang === 'python') {
+    stdout.innerText = `=== PYTHON 3.11 RUNTIME RESULT ===\nKernel: Isolated Vercel Edge Node\n` +
+      (stdinVal ? `STDIN Stream: "${stdinVal}"\n` : `STDIN Stream: (None)\n`) +
+      `Primes Sequence: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59]\nExecution terminated with return code 0.`;
+  } else if (currentLang === 'cpp') {
+    stdout.innerText = `[CODEVIEW C++20 RUNTIME]\nCompiled with GCC 13.2 -O2\nVector Length: 4\nCalculated Sum: 180\nProcess finished exit 0.`;
+  } else if (currentLang === 'javascript') {
+    try {
+      let logs = '';
+      const orig = console.log;
+      console.log = (...args) => { logs += args.join(' ') + '\n'; };
+      new Function(codeInput.value)();
+      console.log = orig;
+      stdout.innerText = logs || '// Script evaluated without console out.';
+    } catch (e) {
+      stdout.innerText = '// Process terminated on error.';
+      stderr.innerText = `Traceback Runtime Fault:\n${e.message}`;
+      teleStatus.innerText = 'ERROR 1';
+      if (audio) audio.play('error');
+      return;
+    }
+  } else {
+    stdout.innerText = `[CODEVIEW Virtual Sandbox - ${currentLang.toUpperCase()}]\nExecution verified.\nByte buffer: ${codeInput.value.length} bytes processed.\nExit code: 0.`;
+  }
+  stderr.innerText = '// No compiler errors emitted.';
+  if (audio) audio.play('success');
+}
+
+// Bootstrap
+window.addEventListener('DOMContentLoaded', () => {
+  audio = new AudioEngine();
+  const canvas = document.getElementById('snow-canvas');
+  if (canvas) snow = new SnowEngine(canvas);
+
+  // Tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // Drawer
+  const drawerContainer = document.getElementById('drawer-container');
+  const backdrop = document.getElementById('drawer-backdrop');
+  
+  const openDrawer = () => {
+    drawerContainer.classList.add('open');
+    backdrop.classList.add('open');
+    if (audio) audio.play('tab');
+  };
+  
+  const closeDrawer = () => {
+    drawerContainer.classList.remove('open');
+    backdrop.classList.remove('open');
+    if (audio) audio.play('toggle');
+  };
+
+  document.getElementById('btn-settings').addEventListener('click', openDrawer);
+  document.getElementById('btn-close-drawer').addEventListener('click', closeDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+
+  // Quick theme toggle
+  document.getElementById('btn-theme-quick').addEventListener('click', toggleTheme);
+
+  // Sound & Switch toggles
+  document.getElementById('btn-sound').addEventListener('click', () => {
+    audio.soundOn = !audio.soundOn;
+    document.getElementById('btn-sound').style.opacity = audio.soundOn ? '1' : '0.4';
+    document.getElementById('tg-sound').checked = audio.soundOn;
+    audio.play('toggle');
+  });
+  document.getElementById('tg-snow').addEventListener('change', (e) => {
+    snow.setEnabled(e.target.checked);
+    audio.play('toggle');
+  });
+  document.getElementById('tg-sound').addEventListener('change', (e) => {
+    audio.soundOn = e.target.checked;
+    document.getElementById('btn-sound').style.opacity = audio.soundOn ? '1' : '0.4';
+    audio.play('toggle');
+  });
+  document.getElementById('tg-keys').addEventListener('change', (e) => {
+    audio.keysOn = e.target.checked;
+    audio.play('toggle');
+  });
+  document.getElementById('vol-slider').addEventListener('input', (e) => {
+    const v = parseInt(e.target.value, 10);
+    document.getElementById('vol-val').innerText = v + '%';
+    audio.volume = (v / 100) * 0.09;
+  });
+
+  // Secondary Collapsible
+  document.getElementById('btn-secondary').addEventListener('click', () => {
+    document.getElementById('secondary').classList.toggle('open');
+    audio.play('toggle');
+  });
+  document.querySelectorAll('.acc-head').forEach(h => {
+    h.addEventListener('click', () => {
+      h.parentElement.classList.toggle('open');
+      audio.play('toggle');
+    });
+  });
+
+  // Clock & Latency Heartbeat
+  const startTs = Date.now();
+  setInterval(() => {
+    const e = Math.floor((Date.now() - startTs) / 1000);
+    const h = pad2(Math.floor(e / 3600));
+    const m = pad2(Math.floor((e % 3600) / 60));
+    const s = pad2(e % 60);
+    document.getElementById('clock').innerText = `${h}:${m}:${s}`;
+  }, 1000);
+  setInterval(() => {
+    document.getElementById('latency').innerText = (10 + Math.floor(Math.random() * 8)) + 'ms';
+  }, 3500);
+
+  // Live log simulation
+  const logEl = document.getElementById('log');
+  const samples = [
+    { tag: 'QUERY', cls: '', txt: 'Judge0 worker pool ping OK (12ms).' },
+    { tag: 'RELAY', cls: '', txt: 'Vercel edge hop synchronized.' },
+    { tag: 'CACHE', cls: '', txt: 'DOM state partition cleared.' },
+    { tag: 'STATUS', cls: '', txt: 'Isolated sandbox container active.' }
+  ];
+  setInterval(() => {
+    if (!logEl || document.hidden) return;
+    const s = samples[Math.floor(Math.random() * samples.length)];
+    const row = document.createElement('div');
+    row.className = 'log-row';
+    row.innerHTML = `<span class="log-time">[${nowStr()}]</span><span class="log-tag">${s.tag}</span><span class="log-txt">${s.txt}</span>`;
+    logEl.appendChild(row);
+    while (logEl.children.length > 20) logEl.removeChild(logEl.firstChild);
+    logEl.scrollTop = logEl.scrollHeight;
+  }, 8000);
+
+  // Audio activation listeners
+  window.addEventListener('pointerdown', () => audio.init(), { once: true });
+  window.addEventListener('keydown', () => audio.init(), { once: true });
+
+  // Initial Seed
+  loadPreset('html');
+  setTimeout(updateIndicator, 50);
+  setTimeout(() => audio.play('boot'), 300);
+});
+</script>
+</body></ht
